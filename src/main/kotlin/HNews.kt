@@ -1,3 +1,4 @@
+package com.ruman.hnews
 import org.jsoup.Jsoup
 
 const val HNEWS_BASE_URL = "https://news.ycombinator.com"
