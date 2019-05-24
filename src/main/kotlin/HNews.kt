@@ -8,13 +8,17 @@ fun main() {
     fetch()
 }
 
+fun formatLine(index: Int, content: String, link: String) : String {
+    return "$index. $content"
+}
+
 fun fetch() {
     var count = 0
     Jsoup.connect(HNEWS_BASE_URL)
         .get()
         .body()
         .getElementsByAttributeValue("class", "storylink")
-        .map { "${++count}. ${it.text()}\n${it.attr("href")}" }
+        .map { formatLine(++count, it.text(), it.attr("href")) }
         .forEach(::println)
 }
 
