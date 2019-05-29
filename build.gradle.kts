@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.ruman"
-version = "1.0-SNAPSHOT"
+version = "1.0"
 val mainClassNameStr = "$group.hnews.HNewsKt"
 
 repositories {
