@@ -1,24 +1,76 @@
 package com.ruman.hnews
 import org.jsoup.Jsoup
+import java.util.*
 
 const val HNEWS_BASE_URL = "https://news.ycombinator.com"
 
+data class Headline (
+    val id: Int = 0,
+    val index: Int = 0,
+    val title: String = "",
+    val link: String = ""
+)
+
+data class Comment(
+    val text: String = ""
+)
+
 fun main() {
     println("All the news that's un-fit to print")
-    fetch()
+    val headlines = fetch()
+    headlines.forEach { println(formatLine(it.index, it.title, it.link)) }
+    var selected: Int
+    do {
+        print("Select a story to see comments: ")
+        val rdr = Scanner(System.`in`)
+        selected = rdr.nextInt()
+    } while (selected > headlines.size)
+    fetchComments(headlines[selected].id).forEach {
+        println("---\n${wordWrap(it.text, 80)}")
+    }
 }
 
 fun formatLine(index: Int, content: String, link: String) : String {
     return "$index. $content"
 }
 
-fun fetch() {
+fun wordWrap(text: String, maxWidth: Int): String {
+    val source = text.split(" ").listIterator()
+    var budget = maxWidth
+    var sink = ""
+    while (source.hasNext()) {
+        val wordToPlace = "${source.next()} " // Note the trailing space
+        if (budget - wordToPlace.length >= 0) {
+            sink += wordToPlace
+            budget -= wordToPlace.length
+        } else {
+            sink += "\n$wordToPlace"
+            budget = maxWidth - wordToPlace.length
+        }
+    }
+    return sink
+}
+
+fun fetch(): List<Headline> {
     var count = 0
-    Jsoup.connect(HNEWS_BASE_URL)
+    val body = Jsoup.connect(HNEWS_BASE_URL).get().body()
+    val stories = body.getElementsByAttributeValue("class", "athing")
+    return stories.map {
+        val id = it.attr("id").toInt()
+        val storylink = it.getElementsByAttributeValue("class", "storylink").first()
+        val title = storylink.text()
+        val href = storylink.attr("href")
+        Headline(id, count++, title, href)
+    }
+}
+
+fun fetchComments(id: Int): List<Comment> {
+    val comboxes = Jsoup.connect("$HNEWS_BASE_URL/item?id=$id")
         .get()
         .body()
-        .getElementsByAttributeValue("class", "storylink")
-        .map { formatLine(++count, it.text(), it.attr("href")) }
-        .forEach(::println)
+        .getElementsByAttributeValueContaining("class", "commtext")
+    return comboxes.map {
+        Comment(it.text())
+    }
 }
 
