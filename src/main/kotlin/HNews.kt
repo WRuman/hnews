@@ -24,7 +24,7 @@ fun main() {
         print("Select a story to see comments: ")
         val rdr = Scanner(System.`in`)
         selected = rdr.nextInt()
-    } while (selected > headlines.size)
+    } while (selected >= headlines.size)
     fetchComments(headlines[selected].id).forEach {
         println("---\n${wordWrap(it.text, 80)}")
     }
