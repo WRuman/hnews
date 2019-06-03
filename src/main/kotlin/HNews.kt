@@ -12,7 +12,8 @@ data class Headline (
 )
 
 data class Comment(
-    val text: String = ""
+    val text: String = "",
+    val level: Int = 0
 )
 
 fun main() {
@@ -26,8 +27,16 @@ fun main() {
         selected = rdr.nextInt()
     } while (selected >= headlines.size)
     fetchComments(headlines[selected].id).forEach {
-        println("---\n${wordWrap(it.text, 80)}")
+        println("${lineMarkerForCommentLevel(it.level)}\n${wordWrap(it.text, 80)}")
     }
+}
+
+fun lineMarkerForCommentLevel(level: Int): String {
+    var out = ""
+    for (i in 1 .. level) {
+        out += "-"
+    }
+    return out
 }
 
 fun formatLine(index: Int, content: String, link: String) : String {
@@ -65,12 +74,14 @@ fun fetch(): List<Headline> {
 }
 
 fun fetchComments(id: Int): List<Comment> {
-    val comboxes = Jsoup.connect("$HNEWS_BASE_URL/item?id=$id")
+    val comTableRows = Jsoup.connect("$HNEWS_BASE_URL/item?id=$id")
         .get()
         .body()
-        .getElementsByAttributeValueContaining("class", "commtext")
-    return comboxes.map {
-        Comment(it.text())
+        .getElementsByClass("comtr")
+    return comTableRows.map {
+        val nesting = it.getElementsByTag("img").first().attr("width").toInt(10) / 10
+        val content = it.getElementsByClass("commtext").text()
+        Comment(content, nesting)
     }
 }
 
