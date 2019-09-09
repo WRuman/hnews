@@ -21,11 +21,16 @@ fun main() {
     val headlines = fetch()
     headlines.forEach { println(formatLine(it.index, it.title, it.link)) }
     var selected: Int
+    val rdr = Scanner(System.`in`)
     do {
-        print("Select a story to see comments: ")
-        val rdr = Scanner(System.`in`)
+        print("Select a story to see comments (number from 0 to ${headlines.size - 1}): ")
+        if (!rdr.hasNextInt()) {
+            rdr.next()
+            selected = -1
+            continue
+        }
         selected = rdr.nextInt()
-    } while (selected >= headlines.size)
+    } while (selected >= headlines.size || selected < 0)
     fetchComments(headlines[selected].id).forEach {
         println("${lineMarkerForCommentLevel(it.level)}\n${wordWrap(it.text, 80)}")
     }
@@ -36,7 +41,7 @@ fun lineMarkerForCommentLevel(level: Int): String {
     for (i in 1 .. level) {
         out += "-"
     }
-    return out
+    return "$out|"
 }
 
 fun formatLine(index: Int, content: String, link: String) : String {
